@@ -19,9 +19,19 @@ class GeminiAgent:
             # 新增：注入系统指令
             system_instruction=Config.SYSTEM_INSTRUCTION
         )
-        self.chat = self.model.start_chat(enable_automatic_function_calling=True)
+
+        self.max_history = 10
+
+        self.chat = self.model.start_chat(history=[], enable_automatic_function_calling=True)
 
     def send_query(self, user_input):
+
+        # ... 在发送之前检查一下历史长度 ...
+        if len(self.chat.history) > self.max_history:
+            # 删掉最老的两轮（一问一答）
+            self.chat.history = self.chat.history[2:]
+            logger.info("对话历史过长，已自动清理老旧上下文以节省 Token。")
+
         try:
             response = self.chat.send_message(user_input)
 
